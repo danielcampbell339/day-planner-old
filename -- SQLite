@@ -1,0 +1,4 @@
+-- SQLite
+UPDATE activity_frequency
+   SET date_completed = "2021-12-05"
+ WHERE activity_id = "ea9495cc-7ed6-4015-a6d9-cde5679fb883"
