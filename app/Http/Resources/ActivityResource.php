@@ -17,6 +17,9 @@ class ActivityResource extends JsonResource
         return [
             'name' => $this->name,
             'sound' => $this->sound,
+            'minutes' => $this->minutes,
+            'commands' => $this->when($this->commands, new CommandCollection($this->commands)),
+            'frequency' => $this->frequency->id ?? null
         ];
     }
 }

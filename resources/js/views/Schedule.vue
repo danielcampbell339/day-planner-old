@@ -10,7 +10,11 @@
       <div class="card mt-3">
         <div class="card-header">Schedule</div>
         <div class="card-body">
-          <schedule-component ref="scheduleComponent" :schedule="out" />
+          <schedule-component
+            ref="scheduleComponent"
+            :schedule="out"
+            @finishFrequencyActivity="finishFrequencyActivity"
+          />
         </div>
       </div>
     </div>
@@ -30,6 +34,7 @@ export default {
       out: null,
       currentActivity: null,
       nextActivity: null,
+      cacheKey: null,
     };
   },
   components: { TimeComponent, CurrentActivityComponent, ScheduleComponent },
@@ -41,13 +46,13 @@ export default {
       const today = moment().format("YYYY-MM-DD");
       const url = `api/cache/${today}`;
       const response = await axios.get(url);
-      let ret = null;
 
-      if (response.data) {
-        ret = response.data;
+      if (response.status != 200) {
+        return;
       }
 
-      this.schedule = ret;
+      this.schedule = response.data.schedule;
+      this.cacheKey = response.data.cache_key;
       this.out = this.condenseSchedule((x) => x.schedule_id);
       this.checkCurrentActivity();
     },
@@ -63,7 +68,8 @@ export default {
       const url = `api/schedule/${endTime}/${startTime}`;
 
       const response = await axios.get(url);
-      return response.data.data;
+      this.cacheKey = response.data.cache_key;
+      return response.data.schedule;
     },
     getCurrentActivity(exclude = []) {
       let currentTime = moment().format("H:mm");
@@ -119,12 +125,29 @@ export default {
 
       return nextActivity;
     },
-    condenseSchedule(key) {
+    condenseSchedule(key, val) {
       let seen = new Set();
       return this.schedule.filter((item) => {
         let k = key(item);
         return seen.has(k) ? false : seen.add(k);
       });
+    },
+    async finishFrequencyActivity(activity) {
+      // Update the date in the db
+      let updatedSchedule = await axios.post(
+        `api/frequency/${activity.frequency}`,
+        {
+          schedule: this.schedule,
+          cache_key: this.cacheKey,
+        }
+      );
+
+      this.schedule = updatedSchedule.data.schedule;
+    },
+  },
+  watch: {
+    schedule(val) {
+      this.out = this.condenseSchedule((x) => x.schedule_id);
     },
   },
 };

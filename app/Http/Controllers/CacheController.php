@@ -15,6 +15,13 @@ class CacheController extends Controller
      */
     public function __invoke(Request $request)
     {
-        return json_decode(Cache::get($request->cache_key));
+        $responseCode = 200;
+
+        $cache = Cache::get($request->cache_key);
+        if (!$cache) {
+            $responseCode = 204;
+        }
+
+        return response($cache, $responseCode);
     }
 }

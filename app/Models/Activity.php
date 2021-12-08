@@ -14,7 +14,8 @@ class Activity extends Model
     protected $with = [
         'children',
         'type',
-        'frequency'
+        'frequency',
+        'commands'
     ];
 
     protected $casts = [
@@ -38,6 +39,11 @@ class Activity extends Model
     public function frequency()
     {
         return $this->belongsTo(ActivityFrequency::class, 'id', 'activity_id');
+    }
+
+    public function commands()
+    {
+        return $this->belongsToMany(Command::class, ActivityCommand::class);
     }
 
     public function getStartAttribute($value)

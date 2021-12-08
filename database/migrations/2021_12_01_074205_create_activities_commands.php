@@ -14,6 +14,7 @@ class CreateActivitiesCommands extends Migration
     public function up()
     {
         Schema::create('activity_command', function (Blueprint $table) {
+            $table->uuid('id')->primary();
             $table->foreignId('activity_id')->constrained();
             $table->foreignId('command_id')->constrained();
             $table->timestamps();

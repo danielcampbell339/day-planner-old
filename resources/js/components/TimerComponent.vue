@@ -11,8 +11,6 @@
 </template>
 
 <script>
-// import timer from "/storage/sounds/timer.mp3";
-
 export default {
   name: "TimerComponent",
   props: {
@@ -64,13 +62,9 @@ export default {
     current() {
       if (this.current <= 0) {
         this.paused = true;
-        new Audio(timer).play();
-
-        if (this.getSetting("show_notifications")) {
-          new Notification("Timer Complete!", {
-            body: `Timer for ${this.activity.name} complete!`,
-          });
-        }
+        let dir = `storage/sounds/timer.mp3`;
+        const audio = new Audio(dir);
+        audio.play();
       }
     },
   },

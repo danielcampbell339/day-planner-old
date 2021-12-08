@@ -45,10 +45,13 @@ class ScheduleController extends Controller
 
         $this->generateSchedule();
 
-        $response = new ScheduleCollection($this->schedule);
-
         $cacheKey = now()->toDateString();
-        Cache::put($cacheKey, $response->toJson(), now()->addDay(1));
+        $response = response([
+            'schedule' => new ScheduleCollection($this->schedule),
+            'cache_key' => $cacheKey
+        ]);
+
+        Cache::put($cacheKey, json_encode($response->original), now()->addDay(1));
 
         return $response;
     }

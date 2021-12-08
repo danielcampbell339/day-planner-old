@@ -5342,6 +5342,12 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
 /* harmony export */ });
 /* harmony import */ var _TimerComponent_vue__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./TimerComponent.vue */ "./resources/js/components/TimerComponent.vue");
+function _createForOfIteratorHelper(o, allowArrayLike) { var it = typeof Symbol !== "undefined" && o[Symbol.iterator] || o["@@iterator"]; if (!it) { if (Array.isArray(o) || (it = _unsupportedIterableToArray(o)) || allowArrayLike && o && typeof o.length === "number") { if (it) o = it; var i = 0; var F = function F() {}; return { s: F, n: function n() { if (i >= o.length) return { done: true }; return { done: false, value: o[i++] }; }, e: function e(_e) { throw _e; }, f: F }; } throw new TypeError("Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); } var normalCompletion = true, didErr = false, err; return { s: function s() { it = it.call(o); }, n: function n() { var step = it.next(); normalCompletion = step.done; return step; }, e: function e(_e2) { didErr = true; err = _e2; }, f: function f() { try { if (!normalCompletion && it["return"] != null) it["return"](); } finally { if (didErr) throw err; } } }; }
+
+function _unsupportedIterableToArray(o, minLen) { if (!o) return; if (typeof o === "string") return _arrayLikeToArray(o, minLen); var n = Object.prototype.toString.call(o).slice(8, -1); if (n === "Object" && o.constructor) n = o.constructor.name; if (n === "Map" || n === "Set") return Array.from(o); if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _arrayLikeToArray(o, minLen); }
+
+function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) { arr2[i] = arr[i]; } return arr2; }
+
 //
 //
 //
@@ -5424,6 +5430,26 @@ __webpack_require__.r(__webpack_exports__);
       }],
       activitiesToFinish: []
     };
+  },
+  methods: {
+    runCommands: function runCommands(commands) {
+      var _iterator = _createForOfIteratorHelper(commands),
+          _step;
+
+      try {
+        for (_iterator.s(); !(_step = _iterator.n()).done;) {
+          var command = _step.value;
+          window.open(command.name, "_blank");
+        }
+      } catch (err) {
+        _iterator.e(err);
+      } finally {
+        _iterator.f();
+      }
+    },
+    finishFrequencyActivity: function finishFrequencyActivity(activity) {
+      this.$emit("finishFrequencyActivity", activity);
+    }
   }
 });
 
@@ -5508,7 +5534,6 @@ __webpack_require__.r(__webpack_exports__);
 //
 //
 //
-// import timer from "/storage/sounds/timer.mp3";
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = ({
   name: "TimerComponent",
   props: {
@@ -5555,13 +5580,9 @@ __webpack_require__.r(__webpack_exports__);
     current: function current() {
       if (this.current <= 0) {
         this.paused = true;
-        new Audio(timer).play();
-
-        if (this.getSetting("show_notifications")) {
-          new Notification("Timer Complete!", {
-            body: "Timer for ".concat(this.activity.name, " complete!")
-          });
-        }
+        var dir = "storage/sounds/timer.mp3";
+        var audio = new Audio(dir);
+        audio.play();
       }
     }
   },
@@ -5663,6 +5684,10 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
 //
 //
 //
+//
+//
+//
+//
 
 
 
@@ -5673,7 +5698,8 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
       schedule: null,
       out: null,
       currentActivity: null,
-      nextActivity: null
+      nextActivity: null,
+      cacheKey: null
     };
   },
   components: {
@@ -5704,7 +5730,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
       var _this2 = this;
 
       return _asyncToGenerator( /*#__PURE__*/_babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0___default().mark(function _callee2() {
-        var today, url, response, ret;
+        var today, url, response;
         return _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0___default().wrap(function _callee2$(_context2) {
           while (1) {
             switch (_context2.prev = _context2.next) {
@@ -5716,20 +5742,24 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
 
               case 4:
                 response = _context2.sent;
-                ret = null;
 
-                if (response.data) {
-                  ret = response.data;
+                if (!(response.status != 200)) {
+                  _context2.next = 7;
+                  break;
                 }
 
-                _this2.schedule = ret;
+                return _context2.abrupt("return");
+
+              case 7:
+                _this2.schedule = response.data.schedule;
+                _this2.cacheKey = response.data.cache_key;
                 _this2.out = _this2.condenseSchedule(function (x) {
                   return x.schedule_id;
                 });
 
                 _this2.checkCurrentActivity();
 
-              case 10:
+              case 11:
               case "end":
                 return _context2.stop();
             }
@@ -5781,9 +5811,10 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
 
               case 5:
                 response = _context4.sent;
-                return _context4.abrupt("return", response.data.data);
+                _this4.cacheKey = response.data.cache_key;
+                return _context4.abrupt("return", response.data.schedule);
 
-              case 7:
+              case 8:
               case "end":
                 return _context4.stop();
             }
@@ -5856,11 +5887,45 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
 
       return nextActivity;
     },
-    condenseSchedule: function condenseSchedule(key) {
+    condenseSchedule: function condenseSchedule(key, val) {
       var seen = new Set();
       return this.schedule.filter(function (item) {
         var k = key(item);
         return seen.has(k) ? false : seen.add(k);
+      });
+    },
+    finishFrequencyActivity: function finishFrequencyActivity(activity) {
+      var _this5 = this;
+
+      return _asyncToGenerator( /*#__PURE__*/_babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0___default().mark(function _callee5() {
+        var updatedSchedule;
+        return _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0___default().wrap(function _callee5$(_context5) {
+          while (1) {
+            switch (_context5.prev = _context5.next) {
+              case 0:
+                _context5.next = 2;
+                return axios.post("api/frequency/".concat(activity.frequency), {
+                  schedule: _this5.schedule,
+                  cache_key: _this5.cacheKey
+                });
+
+              case 2:
+                updatedSchedule = _context5.sent;
+                _this5.schedule = updatedSchedule.data.schedule;
+
+              case 4:
+              case "end":
+                return _context5.stop();
+            }
+          }
+        }, _callee5);
+      }))();
+    }
+  },
+  watch: {
+    schedule: function schedule(val) {
+      this.out = this.condenseSchedule(function (x) {
+        return x.schedule_id;
       });
     }
   }
@@ -51767,7 +51832,7 @@ var render = function () {
           ]),
           _vm._v(" "),
           _c("td", [
-            s.activity.commands
+            s.activity.commands > 0
               ? _c("span", [
                   _c("input", {
                     staticClass: "btn btn-primary",
@@ -52023,6 +52088,9 @@ var render = function () {
                     _c("schedule-component", {
                       ref: "scheduleComponent",
                       attrs: { schedule: _vm.out },
+                      on: {
+                        finishFrequencyActivity: _vm.finishFrequencyActivity,
+                      },
                     }),
                   ],
                   1

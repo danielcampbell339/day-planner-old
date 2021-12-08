@@ -15,8 +15,7 @@ class ActivityFactory extends Factory
     {
         return [
             'id' => $this->faker->uuid(),
-            'name' => $this->faker->name(),
-            'minutes' => 1
+            'name' => $this->faker->name()
         ];
     }
 }

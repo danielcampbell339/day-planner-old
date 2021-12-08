@@ -32,7 +32,7 @@
           </span>
         </td>
         <td>
-          <span v-if="s.activity.commands">
+          <span v-if="s.activity.commands > 0">
             <input
               type="button"
               class="btn btn-primary"
@@ -89,6 +89,16 @@ export default {
       ],
       activitiesToFinish: [],
     };
+  },
+  methods: {
+    runCommands(commands) {
+      for (let command of commands) {
+        window.open(command.name, "_blank");
+      }
+    },
+    finishFrequencyActivity(activity) {
+      this.$emit("finishFrequencyActivity", activity);
+    },
   },
 };
 </script>
